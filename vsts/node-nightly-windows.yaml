@@ -103,6 +103,19 @@ stages:
     displayName: 'Package for Release'
     steps:
 
+    # run SBOM on source
+    - task: AzureArtifacts.manifest-generator-task.manifest-generator-task.ManifestGeneratorTask@0
+      displayName: 'Generate software manifest for executable'
+      inputs:
+        BuildDropPath: $(Build.ArtifactStagingDirectory)
+
+    # publish SBOM manifest artifact
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish build artifacts'
+      inputs:
+        pathToPublish: $(Build.ArtifactStagingDirectory)\_manifest
+        artifactName: SBOM
+  
     # Pack npm archive
     - task: PowerShell@2
       displayName: 'Create NPM pack archive'
@@ -121,11 +134,6 @@ stages:
         targetFolder: $(Build.ArtifactStagingDirectory)
         sourceFolder: $(Build.SourcesDirectory)
 
-    # run SBOM in artifact staging
-    - task: AzureArtifacts.manifest-generator-task.manifest-generator-task.ManifestGeneratorTask@0
-      displayName: 'Generate software manifest for executable'
-      inputs:
-        BuildDropPath: $(Build.ArtifactStagingDirectory)
 
     # publish artifacts to pipeline
     - task: PublishBuildArtifacts@1
